@@ -1,27 +1,620 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Интерактив: анимации, мини-игра, звук, 3D, Canvas</title>
-<style>
-  :root{
-    --bg1: #0f172a;
-    --card: #0b1220;
-    --accent: #22c55e;
-    --accent-2: #f59e0b;
-    --glass: rgba(255,255,255,0.03);
-  }
-  html,body{height:100%;margin:0;font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;background:linear-gradient(135deg,#04132b 0%, #081423 50%, #071a2b 100%);color:#e6eef8}
-  .wrap{max-width:1100px;margin:20px auto;padding:18px}
-  h1{text-align:center;margin:6px 0 18px;font-weight:600}
-  .grid{display:grid;grid-template-columns:1fr;gap:18px}
-  @media(min-width:980px){.grid{grid-template-columns:1fr 1fr}}
-  .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); padding:16px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.03)}
-  .card h2{margin:0 0 10px;font-size:18px}
-  button{background:linear-gradient(90deg,#2563eb,#7c3aed);color:white;border:0;padding:10px 14px;border-radius:8px;cursor:pointer;font-weight:600}
-  button.alt{background:linear-gradient(90deg,#10b981,#06b6d4)}
-  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-  #animCanvas, #gameCanvas, #vizCanvas{width:100%;height:220px;border-radius:8px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02));display:block}
-  .small{font-size:13px;color:#bcd5ff}
-  .info{margin-top:10px;background:rgba(255,255,255,0.02);padding:
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Проверка ударений</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(to right, #4a00e0, #8e2de2);
+            color: white;
+            padding: 20px 15px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 1.6rem;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .subtitle {
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 20px 15px;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            background-color: #f8f9fa;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            flex-wrap: wrap;
+        }
+        
+        .stat-item {
+            text-align: center;
+            flex: 1;
+            min-width: 50%;
+            margin-bottom: 10px;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #4a00e0;
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 3px;
+        }
+        
+        .question-card {
+            background-color: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px 15px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e9ecef;
+        }
+        
+        .word {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 15px 0;
+            color: #2c3e50;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            line-height: 1.3;
+            word-break: break-word;
+        }
+        
+        .question {
+            font-size: 1.2rem;
+            color: #495057;
+            margin-bottom: 20px;
+        }
+        
+        .buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 20px 0;
+        }
+        
+        button {
+            padding: 16px 20px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            -webkit-appearance: none;
+        }
+        
+        .yes-btn {
+            background: linear-gradient(to right, #00b09b, #96c93d);
+            color: white;
+        }
+        
+        .yes-btn:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .no-btn {
+            background: linear-gradient(to right, #ff416c, #ff4b2b);
+            color: white;
+        }
+        
+        .no-btn:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .next-btn {
+            background: linear-gradient(to right, #4a00e0, #8e2de2);
+            color: white;
+            margin: 0 auto;
+            display: block;
+        }
+        
+        .next-btn:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .restart-btn {
+            background: linear-gradient(to right, #ff8c00, #ff5500);
+            color: white;
+            margin: 0 auto;
+            display: block;
+        }
+        
+        .restart-btn:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .result {
+            text-align: center;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .correct {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .incorrect {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .result-message {
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .translation {
+            font-size: 1.1rem;
+            font-style: italic;
+            color: #495057;
+            line-height: 1.4;
+        }
+        
+        .final-result {
+            text-align: center;
+            padding: 25px;
+            border-radius: 15px;
+            margin: 20px 0;
+            display: none;
+            animation: fadeIn 0.5s ease;
+            background-color: #f8f9fa;
+            border: 2px solid #e9ecef;
+        }
+        
+        .final-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        
+        .final-message {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+        
+        .final-stats {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            color: #495057;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 15px;
+            color: #6c757d;
+            font-size: 0.8rem;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            background: linear-gradient(to right, #4a00e0, #8e2de2);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        /* Улучшения для очень маленьких экранов */
+        @media (max-width: 350px) {
+            .word {
+                font-size: 1.7rem;
+            }
+            
+            .question {
+                font-size: 1.1rem;
+            }
+            
+            button {
+                padding: 14px 16px;
+                font-size: 1rem;
+            }
+            
+            .final-title {
+                font-size: 1.5rem;
+            }
+            
+            .final-message {
+                font-size: 1.1rem;
+            }
+        }
+        
+        /* Горизонтальная ориентация */
+        @media (max-height: 500px) and (orientation: landscape) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                max-width: 90%;
+            }
+            
+            .content {
+                padding: 15px;
+            }
+            
+            .question-card {
+                padding: 15px;
+            }
+            
+            .word {
+                font-size: 1.6rem;
+                margin: 10px 0;
+            }
+            
+            .buttons {
+                flex-direction: row;
+                gap: 10px;
+            }
+            
+            button {
+                padding: 12px 10px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Проверка ударений</h1>
+            <div class="subtitle">Проверьте правильность произношения слов</div>
+        </header>
+        
+        <div class="content">
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="currentQuestion">1</div>
+                    <div class="stat-label">Вопрос</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="totalQuestions">75</div>
+                    <div class="stat-label">Всего</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="correctAnswers">0</div>
+                    <div class="stat-label">Правильно</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="successRate">0%</div>
+                    <div class="stat-label">Успех</div>
+                </div>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress" id="progressBar"></div>
+            </div>
+            
+            <div class="question-card" id="questionCard">
+                <div class="word" id="wordDisplay">вероисповедАние</div>
+                <div class="question">Ударение правильное?</div>
+                
+                <div class="buttons">
+                    <button class="yes-btn" id="yesBtn" type="button">Да</button>
+                    <button class="no-btn" id="noBtn" type="button">Нет</button>
+                </div>
+            </div>
+            
+            <div class="result" id="result">
+                <div class="result-message" id="resultMessage"></div>
+                <div class="translation" id="translation"></div>
+            </div>
+            
+            <div class="final-result" id="finalResult">
+                <div class="final-title" id="finalTitle">Результаты теста</div>
+                <div class="final-message" id="finalMessage"></div>
+                <div class="final-stats" id="finalStats"></div>
+                <button class="restart-btn" id="restartBtn" type="button">Начать заново</button>
+            </div>
+            
+            <button class="next-btn" id="nextBtn" type="button" style="display: none;">Следующее слово</button>
+        </div>
+        
+        <footer>
+            Программа для проверки правильности ударений
+        </footer>
+    </div>
+
+    <script>
+        // Встроенные данные из CSV файла
+        const wordsData = [
+            { word: "зАгодя", correct: true, translation: "зАгодя" },
+            { word: "квартАл", correct: true, translation: "квартАл" },
+            { word: "мЕстностей", correct: true, translation: "мЕстностей" },
+            { word: "надОлго", correct: true, translation: "надОлго" },
+            { word: "намЕрение", correct: true, translation: "намЕрение" },
+            { word: "нет кОнусов", correct: true, translation: "нет кОнусов" },
+            { word: "ободрИть", correct: true, translation: "ободрИть" },
+            { word: "озлОбить", correct: true, translation: "озлОбить" },
+            { word: "принЯвшись", correct: true, translation: "принЯвшись" },
+            { word: "прожИвший", correct: true, translation: "прожИвший" },
+            { word: "сверлИт", correct: true, translation: "сверлИт" },
+            { word: "срЕдства", correct: true, translation: "срЕдства" },
+            { word: "танцОвщица", correct: true, translation: "танцОвщица" },
+            { word: "мЕстностей", correct: true, translation: "мЕстностей" },
+            { word: "нанЯвшийся", correct: true, translation: "нанЯвшийся" },
+            { word: "нажИвший", correct: true, translation: "нажИвший" },
+            { word: "бухгАлтеров", correct: true, translation: "бухгАлтеров" },
+            { word: "дОнизу", correct: true, translation: "дОнизу" },
+            { word: "прибЫв", correct: true, translation: "прибЫв" },
+            { word: "красИвее", correct: true, translation: "красИвее" },
+            { word: "прИнял", correct: true, translation: "прИнял" },
+            { word: "прозорлИва", correct: true, translation: "прозорлИва" },
+            { word: "плодоносИть", correct: true, translation: "плодоносИть" },
+            { word: "взялА", correct: true, translation: "взялА" },
+            { word: "вручИт", correct: true, translation: "вручИт" },
+            { word: "дефИс", correct: true, translation: "дефИс" },
+            { word: "досУг", correct: true, translation: "досУг" },
+            { word: "ждалА", correct: true, translation: "ждалА" },
+            { word: "занятА", correct: true, translation: "занятА" },
+            { word: "заперлА", correct: true, translation: "заперлА" },
+            { word: "знАчимый", correct: true, translation: "знАчимый" },
+            { word: "наделЁнный", correct: true, translation: "наделЁнный" },
+            { word: "оптОвый", correct: true, translation: "оптОвый" },
+            { word: "отозвалА", correct: true, translation: "отозвалА" },
+            { word: "поднЯв", correct: true, translation: "поднЯв" },
+            { word: "понЯв", correct: true, translation: "понЯв" },
+            { word: "прожОрлива", correct: true, translation: "прожОрлива" },
+            { word: "сверлИт", correct: true, translation: "сверлИт" },
+            { word: "углубИть", correct: true, translation: "углубИть" },
+            { word: "исчЕрпать", correct: true, translation: "исчЕрпать" },
+            { word: "красИвее", correct: true, translation: "красИвее" },
+            { word: "вероисповедАние", correct: false, translation: "вероисповЕдание" },
+            { word: "дОбела", correct: false, translation: "добелА" },
+            { word: "дОнельзя", correct: false, translation: "донЕльзя" },
+            { word: "локтЯ", correct: false, translation: "лОктя" },
+            { word: "нАчавшись", correct: false, translation: "начАвшись" },
+            { word: "ненАдолго", correct: false, translation: "ненадОлго" },
+            { word: "нОвостей", correct: false, translation: "новостЕй" },
+            { word: "осведомИшься", correct: false, translation: "освЕдомишься" },
+            { word: "отозвАлась", correct: false, translation: "отозвалАсь" },
+            { word: "прИбыв", correct: false, translation: "прибЫв" },
+            { word: "принудИть", correct: false, translation: "принУдить" },
+            { word: "щЕмит", correct: false, translation: "щемИт" },
+            { word: "дозировАть", correct: false, translation: "дозИровать" },
+            { word: "обнЯлась", correct: false, translation: "обнялАсь" },
+            { word: "укрЕпит", correct: false, translation: "укрепИт" },
+            { word: "осведомИться", correct: false, translation: "освЕдомиться" },
+            { word: "защЕмит", correct: false, translation: "защемИт" },
+            { word: "сливОвый", correct: false, translation: "слИвовый" },
+            { word: "квАртал", correct: false, translation: "квартАл" },
+            { word: "лОктей", correct: false, translation: "локтЕй" },
+            { word: "отклЮченный", correct: false, translation: "отключЁнный" },
+            { word: "стОляр", correct: false, translation: "столЯр" },
+            { word: "брАла", correct: false, translation: "бралА" },
+            { word: "вероисповедАние", correct: false, translation: "вероисповЕдание" },
+            { word: "засЕлена", correct: false, translation: "заселенА" },
+            { word: "красивЕе", correct: false, translation: "красИвее" },
+            { word: "кухОнный", correct: false, translation: "кУхонный" },
+            { word: "местностЕй", correct: false, translation: "мЕстностей" },
+            { word: "нАверх", correct: false, translation: "навЕрх" },
+            { word: "нарвАла", correct: false, translation: "нарвалА" },
+            { word: "обогнАла", correct: false, translation: "обогналА" },
+            { word: "плодонОсить", correct: false, translation: "плодоносИть" },
+            { word: "принЯтый", correct: false, translation: "прИнятый" },
+            { word: "прирУченный", correct: false, translation: "приручЁнный" }
+        ];
+
+        // Глобальные переменные
+        let currentIndex = 0;
+        let correctCount = 0;
+        let totalAnswered = 0;
+        let shuffledWords = [];
+
+        // Функция для перемешивания массива (совместимая с Safari)
+        function shuffleArray(array) {
+            var newArray = array.slice();
+            for (var i = newArray.length - 1; i > 0; i--) {
+                var j = Math.floor(Math.random() * (i + 1));
+                var temp = newArray[i];
+                newArray[i] = newArray[j];
+                newArray[j] = temp;
+            }
+            return newArray;
+        }
+
+        // Инициализация приложения
+        function initApp() {
+            try {
+                // Перемешиваем слова
+                shuffledWords = shuffleArray(wordsData);
+                
+                // Инициализируем интерфейс
+                updateStats();
+                showQuestion();
+                
+                // Назначаем обработчики событий
+                document.getElementById('yesBtn').addEventListener('click', function() {
+                    checkAnswer(true);
+                });
+                
+                document.getElementById('noBtn').addEventListener('click', function() {
+                    checkAnswer(false);
+                });
+                
+                document.getElementById('nextBtn').addEventListener('click', nextQuestion);
+                document.getElementById('restartBtn').addEventListener('click', restartTest);
+                
+            } catch (error) {
+                console.log('Ошибка инициализации:', error);
+                document.getElementById('wordDisplay').textContent = "Ошибка загрузки";
+            }
+        }
+
+        // Показать текущий вопрос
+        function showQuestion() {
+            if (!shuffledWords || shuffledWords.length === 0) return;
+            
+            var currentWord = shuffledWords[currentIndex];
+            document.getElementById('wordDisplay').textContent = currentWord.word;
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('nextBtn').style.display = 'none';
+            document.getElementById('yesBtn').style.display = 'block';
+            document.getElementById('noBtn').style.display = 'block';
+            document.getElementById('questionCard').style.display = 'block';
+            document.getElementById('finalResult').style.display = 'none';
+            
+            // Обновить прогресс-бар
+            var progress = (currentIndex / shuffledWords.length) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+        }
+
+        // Проверить ответ
+        function checkAnswer(userAnswer) {
+            var currentWord = shuffledWords[currentIndex];
+            var isCorrect = userAnswer === currentWord.correct;
+            
+            // Показать результат
+            var resultDiv = document.getElementById('result');
+            resultDiv.className = isCorrect ? 'result correct' : 'result incorrect';
+            document.getElementById('resultMessage').textContent = isCorrect ? 'Правильно!' : 'Неправильно!';
+            document.getElementById('translation').textContent = 'Правильный вариант: ' + currentWord.translation;
+            resultDiv.style.display = 'block';
+            
+            // Обновить статистику
+            if (isCorrect) {
+                correctCount++;
+            }
+            totalAnswered++;
+            
+            // Скрыть кнопки ответа, показать кнопку "Далее"
+            document.getElementById('yesBtn').style.display = 'none';
+            document.getElementById('noBtn').style.display = 'none';
+            document.getElementById('nextBtn').style.display = 'block';
+            
+            updateStats();
+        }
+
+        // Перейти к следующему вопросу
+        function nextQuestion() {
+            currentIndex++;
+            if (currentIndex >= shuffledWords.length) {
+                showFinalResult();
+                return;
+            }
+            showQuestion();
+        }
+
+        // Показать финальный результат
+        function showFinalResult() {
+            document.getElementById('questionCard').style.display = 'none';
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('nextBtn').style.display = 'none';
+            document.getElementById('finalResult').style.display = 'block';
+            
+            var successRate = Math.round((correctCount / shuffledWords.length) * 100);
+            
+            // Определяем сообщение в зависимости от результата
+            var message = "";
+            if (correctCount === shuffledWords.length) {
+                message = "УРА! УРА! УРА! К ЕГЭ готов!";
+            } else if (successRate > 50) {
+                message = "УРА! Молодец! Так держать!";
+            } else {
+                message = "Слабовато! Неунывай, до экзамена ещё далеко";
+            }
+            
+            document.getElementById('finalMessage').textContent = message;
+            document.getElementById('finalStats').textContent = 'Правильных ответов: ' + correctCount + ' из ' + shuffledWords.length + ' (' + successRate + '%)';
+        }
+
+        // Перезапустить тест
+        function restartTest() {
+            currentIndex = 0;
+            correctCount = 0;
+            totalAnswered = 0;
+            shuffledWords = shuffleArray(wordsData);
+            updateStats();
+            showQuestion();
+        }
+
+        // Обновить статистику
+        function updateStats() {
+            document.getElementById('currentQuestion').textContent = currentIndex + 1;
+            document.getElementById('correctAnswers').textContent = correctCount;
+            
+            var successRate = totalAnswered > 0 ? Math.round((correctCount / totalAnswered) * 100) : 0;
+            document.getElementById('successRate').textContent = successRate + '%';
+        }
+
+        // Запуск при полной загрузке страницы
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            // DOM уже готов
+            setTimeout(initApp, 100);
+        }
+    </script>
+</body>
+</html>
