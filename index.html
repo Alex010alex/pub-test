@@ -1,144 +1,27 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Интерактивная JS Страница</title>
-
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Интерактив: анимации, мини-игра, звук, 3D, Canvas</title>
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        background: linear-gradient(135deg, #d9e7ff, #ffffff);
-        padding: 20px;
-        margin: 0;
-    }
-
-    h1 {
-        text-align: center;
-        animation: fadeIn 1s ease-out;
-    }
-
-    .card {
-        margin: 20px auto;
-        background: white;
-        padding: 20px;
-        max-width: 700px;
-        border-radius: 12px;
-        box-shadow: 0 0 20px rgba(0,0,0,0.1);
-        animation: slideUp 0.7s ease-out;
-    }
-
-    button {
-        padding: 12px 20px;
-        margin: 10px 0;
-        background: #2979ff;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-size: 16px;
-        cursor: pointer;
-        transition: 0.2s;
-    }
-
-    button:hover {
-        background: #125cd4;
-    }
-
-    #output {
-        margin-top: 15px;
-        background: #f3f3f3;
-        padding: 15px;
-        border-radius: 8px;
-        font-size: 16px;
-        min-height: 40px;
-        white-space: pre-wrap;
-    }
-
-    .animate-box {
-        width: 60px;
-        height: 60px;
-        background: #ff5252;
-        border-radius: 12px;
-        margin-top: 20px;
-        position: relative;
-        animation: bounce 2s infinite ease-in-out;
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(-10px); }
-        to   { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes slideUp {
-        from { opacity: 0; transform: translateY(25px); }
-        to   { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes bounce {
-        0%   { transform: translateX(0); }
-        50%  { transform: translateX(200px); }
-        100% { transform: translateX(0); }
-    }
-
-</style>
-</head>
-
-<body>
-
-<h1>Учимся JavaScript интерактивно 🚀</h1>
-
-<div class="card">
-    <h2>1. Изменяем текст по нажатию кнопки</h2>
-    <button onclick="changeText()">Изменить текст</button>
-    <div id="output">Здесь будет результат…</div>
-</div>
-
-<div class="card">
-    <h2>2. Генератор случайных чисел 🎲</h2>
-    <button onclick="generateNumber()">Сгенерировать число</button>
-    <div id="random">Нажми кнопку!</div>
-</div>
-
-<div class="card">
-    <h2>3. Мини-анимация</h2>
-    <p>JavaScript здесь не нужен — анимация сделана на CSS!</p>
-    <div class="animate-box"></div>
-</div>
-
-<div class="card">
-    <h2>4. Выполнение JS-кода (обучение)</h2>
-    <p>Нажми, чтобы увидеть выполнение JavaScript в действии.</p>
-    <button onclick="runLesson()">Показать пример</button>
-    <div id="lesson"></div>
-</div>
-
-<script>
-function changeText() {
-    const output = document.getElementById("output");
-    output.textContent = "Текст изменён с помощью JavaScript!";
-}
-
-function generateNumber() {
-    const random = Math.floor(Math.random() * 1000);
-    document.getElementById("random").textContent = 
-        "Случайное число: " + random;
-}
-
-function runLesson() {
-    const lessonBlock = document.getElementById("lesson");
-
-    const example = {
-        name: "JavaScript",
-        year: 1995,
-        creator: "Brendan Eich"
-    };
-
-    lessonBlock.textContent =
-        "Имя языка: " + example.name + "\n" +
-        "Год создания: " + example.year + "\n" +
-        "Создатель: " + example.creator;
-}
-</script>
-
-</body>
-</html>
+  :root{
+    --bg1: #0f172a;
+    --card: #0b1220;
+    --accent: #22c55e;
+    --accent-2: #f59e0b;
+    --glass: rgba(255,255,255,0.03);
+  }
+  html,body{height:100%;margin:0;font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;background:linear-gradient(135deg,#04132b 0%, #081423 50%, #071a2b 100%);color:#e6eef8}
+  .wrap{max-width:1100px;margin:20px auto;padding:18px}
+  h1{text-align:center;margin:6px 0 18px;font-weight:600}
+  .grid{display:grid;grid-template-columns:1fr;gap:18px}
+  @media(min-width:980px){.grid{grid-template-columns:1fr 1fr}}
+  .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); padding:16px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.03)}
+  .card h2{margin:0 0 10px;font-size:18px}
+  button{background:linear-gradient(90deg,#2563eb,#7c3aed);color:white;border:0;padding:10px 14px;border-radius:8px;cursor:pointer;font-weight:600}
+  button.alt{background:linear-gradient(90deg,#10b981,#06b6d4)}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  #animCanvas, #gameCanvas, #vizCanvas{width:100%;height:220px;border-radius:8px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02));display:block}
+  .small{font-size:13px;color:#bcd5ff}
+  .info{margin-top:10px;background:rgba(255,255,255,0.02);padding:
