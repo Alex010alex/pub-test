@@ -16,7 +16,7 @@
         body {
             background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
             color: #333;
-            min-height: 100vh;
+            min-height: 90vh; /* Уменьшено на 10% */
             padding: 15px;
             display: flex;
             justify-content: center;
@@ -163,10 +163,19 @@
         }
         
         .restart-btn {
-            background: linear-gradient(to right, #ff8c00, #ff5500);
-            color: white;
+            background: linear-gradient(135deg, #87CEEB, #E0FFFF);
+            color: #2c3e50;
             margin: 0 auto;
             display: block;
+            padding: 16px 20px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
         }
         
         .restart-btn:active {
@@ -379,6 +388,8 @@
             </div>
             
             <button class="next-btn" id="nextBtn" type="button" style="display: none;">Следующее слово</button>
+            <!-- Добавлена кнопка "Начать заново" в основную форму -->
+            <button class="restart-btn" id="restartBtnMain" type="button" style="margin-top: 15px;">Начать заново</button>
         </div>
         
         <footer>
@@ -505,6 +516,7 @@
                 
                 document.getElementById('nextBtn').addEventListener('click', nextQuestion);
                 document.getElementById('restartBtn').addEventListener('click', restartTest);
+                document.getElementById('restartBtnMain').addEventListener('click', restartTest);
                 
             } catch (error) {
                 console.log('Ошибка инициализации:', error);
