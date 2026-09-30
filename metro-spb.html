@@ -1,1 +1,172 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>3D Модель Линий Метро Санкт-Петербурга (Масштаб Z x50)</title>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: sans-serif; background-color: #1a1a1a; color: #fff; }
+        #info {
+            position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.8);
+            padding: 15px; border-radius: 8px; pointer-events: none; max-width: 360px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3); border: 1px solid #444; z-index: 10;
+        }
+        h3 { margin: 0 0 10px 0; color: #ff4d4d; font-size: 16px; }
+        .line-info { margin-bottom: 5px; font-size: 13px; display: flex; align-items: center; }
+        .line-dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; display: inline-block; }
+        .control-hint { font-size: 12px; color: #aaa; margin-top: 10px; line-height: 1.4; }
+        .accent { color: #00ffcc; font-weight: bold; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+    <div id="info">
+        <h3>СПб Метрополитен (3D Модель)</h3>
+        <div class="line-info"><span class="line-dot" style="background-color: #da251d;"></span>Линия 1 (Кировско-Выборгская)</div>
+        <div class="line-info"><span class="line-dot" style="background-color: #44b85c;"></span>Линия 2 (Московско-Петроградская)</div>
+        <div class="line-info"><span class="line-dot" style="background-color: #0072ba;"></span>Линия 3 (Невско-Василеостровская)</div>
+        <div class="line-info"><span class="line-dot" style="background-color: #ea7125;"></span>Линия 4 (Лахтинско-Правобережная)</div>
+        <div class="line-info"><span class="line-dot" style="background-color: #824f9a;"></span>Линия 5 (Фрунзенско-Приморская)</div>
+        <div class="line-info"><span class="line-dot" style="background-color: #795548;"></span>Линия 6 (Красносельско-Калининская)</div>
+        <div style="margin-top: 8px;">Масштаб глубины Z: <span class="accent">x50</span></div>
+        <div class="control-hint">
+            <strong>Управление:</strong><br>
+            • ЛКМ + movement — Свободный обзор<br>
+            • <span class="accent">Ctrl + ЛКМ + movement</span> — Вращение строго в плоскости X-Y (вокруг оси Z)<br>
+            • ПКМ + movement — Панорамирование сцены<br>
+            • Колесико — Приближение / Удаление
+        </div>
+    </div>
+    <script>
+        const lineColors = {
+            "Линия 1": 0xda251d,
+            "Линия 2": 0x44b85c,
+            "Линия 3": 0x0072ba,
+            "Линия 4": 0xea7125,
+            "Линия 5": 0x824f9a,
+            "Линия 6": 0x795548
+        };
+        const metroData = {"Линия 1": [{"name": "Проспект Ветеранов", "num": 1, "depth": 8.0, "type": "Колонная мелкого заложения", "lat": 59.842778, "lon": 30.252778, "x": -3653.9, "y": -8185.17, "z": -400.0}, {"name": "Ленинский проспект", "num": 2, "depth": 8.0, "type": "Колонная мелкого заложения", "lat": 59.851944, "lon": 30.268611, "x": -2771.4, "y": -7165.96, "z": -400.0}, {"name": "Автово", "num": 3, "depth": 12.0, "type": "Колонная мелкого заложения", "lat": 59.866389, "lon": 30.261667, "x": -3158.45, "y": -5559.75, "z": -600.0}, {"name": "Кировский завод", "num": 4, "depth": 50.0, "type": "Колонная глубокого заложения", "lat": 59.879444, "lon": 30.261944, "x": -3143.01, "y": -4108.1, "z": -2500.0}, {"name": "Нарвская", "num": 5, "depth": 52.0, "type": "Пилонная глубокого заложения", "lat": 59.901111, "lon": 30.274722, "x": -2430.79, "y": -1698.84, "z": -2600.0}, {"name": "Балтийская", "num": 6, "depth": 40.0, "type": "Пилонная глубокого заложения", "lat": 59.906944, "lon": 30.299722, "x": -1037.34, "y": -1050.24, "z": -2000.0}, {"name": "Технологический институт-1", "num": 7, "depth": 60.0, "type": "Пилонная глубокого заложения", "lat": 59.916389, "lon": 30.318333, "x": 0.0, "y": 0.0, "z": -3000.0}, {"name": "Пушкинская", "num": 8, "depth": 57.0, "type": "Пилонная глубокого заложения", "lat": 59.920278, "lon": 30.329722, "x": 634.8, "y": 432.44, "z": -2850.0}, {"name": "Владимирская", "num": 9, "depth": 55.0, "type": "Пилонная глубокого заложения", "lat": 59.9275, "lon": 30.347778, "x": 1641.2, "y": 1235.49, "z": -2750.0}, {"name": "Площадь Восстания", "num": 10, "depth": 58.0, "type": "Пилонная глубокого заложения", "lat": 59.931111, "lon": 30.360556, "x": 2353.42, "y": 1637.01, "z": -2900.0}, {"name": "Чернышевская", "num": 11, "depth": 70.0, "type": "Пилонная глубокого заложения", "lat": 59.944444, "lon": 30.359722, "x": 2306.94, "y": 3119.57, "z": -3500.0}, {"name": "Площадь Ленина", "num": 12, "depth": 71.0, "type": "Пилонная глубокого заложения", "lat": 59.955556, "lon": 30.355833, "x": 2090.17, "y": 4355.17, "z": -3550.0}, {"name": "Выборгская", "num": 13, "depth": 67.0, "type": "Колонная глубокого заложения", "lat": 59.971111, "lon": 30.347222, "x": 1610.21, "y": 6084.81, "z": -3350.0}, {"name": "Лесная", "num": 14, "depth": 64.0, "type": "Односводчатая глубокого заложения", "lat": 59.984722, "lon": 30.344167, "x": 1439.93, "y": 7598.28, "z": -3200.0}, {"name": "Площадь Мужества", "num": 15, "depth": 67.0, "type": "Односводчатая глубокого заложения", "lat": 59.999722, "lon": 30.366667, "x": 2694.04, "y": 9266.21, "z": -3350.0}, {"name": "Политехническая", "num": 16, "depth": 65.0, "type": "Односводчатая глубокого заложения", "lat": 60.008889, "lon": 30.371111, "x": 2941.74, "y": 10285.53, "z": -3250.0}, {"name": "Академическая", "num": 17, "depth": 64.0, "type": "Колонная глубокого заложения", "lat": 60.0125, "lon": 30.396111, "x": 4335.18, "y": 10687.06, "z": -3200.0}, {"name": "Гражданский проспект", "num": 18, "depth": 64.0, "type": "Колонная глубокого заложения", "lat": 60.035, "lon": 30.418056, "x": 5558.35, "y": 13188.94, "z": -3200.0}, {"name": "Девяткино", "num": 19, "depth": 0.0, "type": "Наземная крытая", "lat": 60.050278, "lon": 30.442222, "x": 6905.32, "y": 14887.78, "z": -0.0}], "Линия 2": [{"name": "Купчино", "num": 1, "depth": 0.0, "type": "Наземная крытая", "lat": 59.829444, "lon": 30.375278, "x": 3174.0, "y": -9667.84, "z": -0.0}, {"name": "Звёздная", "num": 2, "depth": 22.0, "type": "Глубокого заложения (тип горный лифт)", "lat": 59.833333, "lon": 30.349444, "x": 1734.06, "y": -9235.41, "z": -1100.0}, {"name": "Московская", "num": 3, "depth": 29.0, "type": "Глубокого заложения (тип горный лифт)", "lat": 59.851944, "lon": 30.321389, "x": 170.34, "y": -7165.96, "z": -1450.0}, {"name": "Парк Победы", "num": 4, "depth": 35.0, "type": "Глубокого заложения (тип горный лифт)", "lat": 59.866111, "lon": 30.321667, "x": 185.83, "y": -5590.66, "z": -1750.0}, {"name": "Электросила", "num": 5, "depth": 35.0, "type": "Пилонная глубокого заложения", "lat": 59.879167, "lon": 30.318889, "x": 30.99, "y": -4138.9, "z": -1750.0}, {"name": "Московские ворота", "num": 6, "depth": 35.0, "type": "Пилонная глубокого заложения", "lat": 59.891667, "lon": 30.318056, "x": -15.44, "y": -2748.96, "z": -1750.0}, {"name": "Фрунзенская", "num": 7, "depth": 39.0, "type": "Пилонная глубокого заложения", "lat": 59.906111, "lon": 30.318611, "x": 15.5, "y": -1142.86, "z": -1950.0}, {"name": "Технологический институт-2", "num": 8, "depth": 60.0, "type": "Пилонная глубокого заложения", "lat": 59.916389, "lon": 30.318611, "x": 15.5, "y": 0.0, "z": -3000.0}, {"name": "Сенная площадь", "num": 9, "depth": 55.0, "type": "Пилонная глубокого заложения", "lat": 59.927222, "lon": 30.320278, "x": 108.41, "y": 1204.57, "z": -2750.0}, {"name": "Невский проспект", "num": 10, "depth": 63.0, "type": "Пилонная глубокого заложения", "lat": 59.934444, "lon": 30.330556, "x": 681.28, "y": 2007.62, "z": -3150.0}, {"name": "Горьковская", "num": 11, "depth": 53.0, "type": "Пилонная глубокого заложения", "lat": 59.956111, "lon": 30.318889, "x": 30.99, "y": 4416.89, "z": -2650.0}, {"name": "Петроградская", "num": 12, "depth": 53.0, "type": "Глубокого заложения (тип горный лифт)", "lat": 59.966389, "lon": 30.311389, "x": -387.04, "y": 5559.75, "z": -2650.0}, {"name": "Чёрная речка", "num": 13, "depth": 30.0, "type": "Односводчатая глубокого заложения", "lat": 59.985556, "lon": 30.300833, "x": -975.41, "y": 7691.02, "z": -1500.0}, {"name": "Пионерская", "num": 14, "depth": 67.0, "type": "Односводчатая глубокого заложения", "lat": 60.0025, "lon": 30.296667, "x": -1207.62, "y": 9575.11, "z": -3350.0}, {"name": "Удельная", "num": 15, "depth": 64.0, "type": "Односводчатая глубокого заложения", "lat": 60.016667, "lon": 30.315556, "x": -154.78, "y": 11150.41, "z": -3200.0}, {"name": "Озерки", "num": 16, "depth": 59.0, "type": "Односводчатая глубокого заложения", "lat": 60.037222, "lon": 30.321389, "x": 170.34, "y": 13436.02, "z": -2950.0}, {"name": "Проспект Просвещения", "num": 17, "depth": 60.0, "type": "Колонно-стеновая глубокого заложения", "lat": 60.051389, "lon": 30.3325, "x": 789.64, "y": 15011.32, "z": -3000.0}, {"name": "Парнас", "num": 18, "depth": 0.0, "type": "Наземная крытая", "lat": 60.066944, "lon": 30.333889, "x": 867.06, "y": 16740.95, "z": -0.0}], "Линия 3": [{"name": "Беговая", "num": 1, "depth": 17.0, "type": "Колонная мелкого заложения", "lat": 59.987222, "lon": 30.210556, "x": -6007.27, "y": 7876.27, "z": -850.0}, {"name": "Зенит", "num": 2, "depth": 17.0, "type": "Колонная мелкого заложения", "lat": 59.972222, "lon": 30.221111, "x": -5418.95, "y": 6208.35, "z": -850.0}, {"name": "Приморская", "num": 3, "depth": 68.0, "type": "Колонно-стеновая глубокого заложения", "lat": 59.948611, "lon": 30.234167, "x": -4691.24, "y": 3582.92, "z": -3400.0}, {"name": "Василеостровская", "num": 4, "depth": 64.0, "type": "Глубокого заложения (тип горный лифт)", "lat": 59.940556, "lon": 30.278333, "x": -2229.52, "y": 2687.25, "z": -3200.0}, {"name": "Гостиный двор", "num": 5, "depth": 56.0, "type": "Глубокого заложения (тип горный лифт)", "lat": 59.933889, "lon": 30.333333, "x": 836.07, "y": 1945.91, "z": -2800.0}, {"name": "Маяковская", "num": 6, "depth": 51.0, "type": "Глубокого заложения (тип горный лифт)", "lat": 59.931667, "lon": 30.355278, "x": 2059.24, "y": 1698.84, "z": -2550.0}, {"name": "Площадь Александра Невского-1", "num": 7, "depth": 54.0, "type": "Глубокого заложения (тип горный лифт)", "lat": 59.924444, "lon": 30.385556, "x": 3746.87, "y": 895.68, "z": -2700.0}, {"name": "Елизаровская", "num": 8, "depth": 62.0, "type": "Глубокого заложения (тип горный лифт)", "lat": 59.896667, "lon": 30.3975, "x": 4412.6, "y": -2192.99, "z": -3100.0}, {"name": "Ломоносовская", "num": 9, "depth": 65.0, "type": "Колонно-стеновая глубокого заложения", "lat": 59.877222, "lon": 30.418333, "x": 5573.79, "y": -4355.17, "z": -3250.0}, {"name": "Пролетарская", "num": 10, "depth": 72.0, "type": "Колонно-стеновая глубокого заложения", "lat": 59.865, "lon": 30.470556, "x": 8484.59, "y": -5714.2, "z": -3600.0}, {"name": "Обухово", "num": 11, "depth": 62.0, "type": "Односводчатая глубокого заложения", "lat": 59.849167, "lon": 30.457778, "x": 7772.38, "y": -7474.75, "z": -3100.0}, {"name": "Рыбацкое", "num": 12, "depth": 0.0, "type": "Наземная крытая", "lat": 59.830833, "lon": 30.500278, "x": 10141.24, "y": -9513.39, "z": -0.0}], "Линия 4": [{"name": "Горный институт", "num": 1, "depth": 70.0, "type": "Пилонная глубокого заложения", "lat": 59.927222, "lon": 30.269444, "x": -2724.97, "y": 1204.57, "z": -3500.0}, {"name": "Спасская", "num": 2, "depth": 60.0, "type": "Пилонная глубокого заложения", "lat": 59.926944, "lon": 30.32, "x": 92.92, "y": 1173.66, "z": -3000.0}, {"name": "Достоевская", "num": 3, "depth": 62.0, "type": "Колонно-стеновая глубокого заложения", "lat": 59.9275, "lon": 30.346944, "x": 1594.72, "y": 1235.49, "z": -3100.0}, {"name": "Лиговский проспект", "num": 4, "depth": 66.0, "type": "Односводчатая глубокого заложения", "lat": 59.921111, "lon": 30.355278, "x": 2059.24, "y": 525.06, "z": -3300.0}, {"name": "Площадь Александра Невского-2", "num": 5, "depth": 60.0, "type": "Колонная глубокого заложения", "lat": 59.924167, "lon": 30.384444, "x": 3684.89, "y": 864.87, "z": -3000.0}, {"name": "Новочеркасская", "num": 6, "depth": 61.0, "type": "Односводчатая глубокого заложения", "lat": 59.929167, "lon": 30.411667, "x": 5202.24, "y": 1420.85, "z": -3050.0}, {"name": "Ладожская", "num": 7, "depth": 61.0, "type": "Односводчатая глубокого заложения", "lat": 59.9325, "lon": 30.439722, "x": 6765.97, "y": 1791.46, "z": -3050.0}, {"name": "Проспект Большевиков", "num": 8, "depth": 68.0, "type": "Односводчатая глубокого заложения", "lat": 59.919722, "lon": 30.466944, "x": 8283.27, "y": 370.61, "z": -3400.0}, {"name": "Улица Дыбенко", "num": 9, "depth": 61.0, "type": "Колонно-стеновая глубокого заложения", "lat": 59.893889, "lon": 30.482778, "x": 9165.82, "y": -2501.89, "z": -3050.0}], "Линия 5": [{"name": "Комендантский проспект", "num": 1, "depth": 75.0, "type": "Колонно-стеновая глубокого заложения", "lat": 60.008611, "lon": 30.259167, "x": -3297.79, "y": 10254.62, "z": -3750.0}, {"name": "Старая Деревня", "num": 2, "depth": 61.0, "type": "Односводчатая глубокого заложения", "lat": 59.989444, "lon": 30.255278, "x": -3514.56, "y": 8123.35, "z": -3050.0}, {"name": "Крестовский остров", "num": 3, "depth": 49.0, "type": "Колонная глубокого заложения", "lat": 59.971944, "lon": 30.259444, "x": -3282.35, "y": 6177.43, "z": -2450.0}, {"name": "Чкаловская", "num": 4, "depth": 60.0, "type": "Односводчатая глубокого заложения", "lat": 59.961111, "lon": 30.291944, "x": -1470.87, "y": 4972.86, "z": -3000.0}, {"name": "Спортивная", "num": 5, "depth": 64.0, "type": "Двухъярусная глубокого заложения", "lat": 59.952222, "lon": 30.290833, "x": -1532.79, "y": 3984.45, "z": -3200.0}, {"name": "Адмиралтейская", "num": 6, "depth": 86.0, "type": "Колонно-стеновая глубокого заложения", "lat": 59.936111, "lon": 30.314444, "x": -216.76, "y": 2192.99, "z": -4300.0}, {"name": "Садовая", "num": 7, "depth": 71.0, "type": "Односводчатая глубокого заложения", "lat": 59.926944, "lon": 30.318333, "x": 0.0, "y": 1173.66, "z": -3550.0}, {"name": "Звенигородская", "num": 8, "depth": 57.0, "type": "Колонная глубокого заложения", "lat": 59.920833, "lon": 30.329444, "x": 619.3, "y": 494.15, "z": -2850.0}, {"name": "Обводный канал", "num": 9, "depth": 61.0, "type": "Пилонная глубокого заложения", "lat": 59.914444, "lon": 30.348889, "x": 1703.13, "y": -216.27, "z": -3050.0}, {"name": "Волковская", "num": 10, "depth": 61.0, "type": "Пилонная глубокого заложения", "lat": 59.896111, "lon": 30.357778, "x": 2198.58, "y": -2254.81, "z": -3050.0}, {"name": "Бухарестская", "num": 11, "depth": 65.0, "type": "Пилонная глубокого заложения", "lat": 59.883889, "lon": 30.368889, "x": 2817.89, "y": -3613.84, "z": -3250.0}, {"name": "Международная", "num": 12, "depth": 65.0, "type": "Колонно-стеновая глубокого заложения", "lat": 59.869722, "lon": 30.378056, "x": 3328.84, "y": -5189.13, "z": -3250.0}, {"name": "Проспект Славы", "num": 13, "depth": 59.0, "type": "Пилонная глубокого заложения", "lat": 59.852222, "lon": 30.395556, "x": 4304.25, "y": -7135.05, "z": -2950.0}, {"name": "Дунайская", "num": 14, "depth": 17.0, "type": "Колонная мелкого заложения", "lat": 59.839722, "lon": 30.414444, "x": 5357.03, "y": -8524.98, "z": -850.0}, {"name": "Шушары", "num": 15, "depth": 0.0, "type": "Наземная крытая", "lat": 59.821389, "lon": 30.418056, "x": 5558.35, "y": -10563.52, "z": -0.0}], "Линия 6": [{"name": "Юго-Западная", "num": 1, "depth": 50.0, "type": "Пилонная глубокого заложения", "lat": 59.868056, "lon": 30.222778, "x": -5326.04, "y": -5374.38, "z": -2500.0}, {"name": "Путиловская", "num": 2, "depth": 60.0, "type": "Пилонная глубокого заложения", "lat": 59.879444, "lon": 30.2625, "x": -3112.02, "y": -4108.1, "z": -3000.0}]};
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x141414);
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 100000);
+        camera.position.set(0, -22000, 14000);
+        camera.up.set(0, 0, 1);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.body.appendChild(renderer.domElement);
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
+        dirLight.position.set(5000, 5000, 20000);
+        scene.add(dirLight);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.screenSpacePanning = false;
+        controls.maxPolarAngle = Math.PI;
+        controls.target.set(600, 600, -2000);
+
+        const gridHelper = new THREE.GridHelper(50000, 50, 0x444444, 0x222222);
+        gridHelper.rotation.x = Math.PI / 2;
+        scene.add(gridHelper);
+
+        function createTextSprite(text) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 512;
+            canvas.height = 128;
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+            ctx.fillRect(0, 20, canvas.width, 88);
+            ctx.font = 'Bold 28px sans-serif';
+            ctx.fillStyle = '#ffffff';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, canvas.width / 2, 64);
+            const texture = new THREE.CanvasTexture(canvas);
+            const spriteMaterial = new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false });
+            const sprite = new THREE.Sprite(spriteMaterial);
+            sprite.scale.set(1300, 325, 1);
+            return sprite;
+        }
+
+        for (const lineName in metroData) {
+            const stations = metroData[lineName];
+            const trackPoints = [];
+            const lineColor = lineColors[lineName] || 0xffffff;
+
+            stations.forEach(st => {
+                const pos = new THREE.Vector3(st.x, st.y, st.z);
+                trackPoints.push(pos);
+
+                let sphereColor = 0xff3333;
+                if (st.depth === 0) sphereColor = 0xffcc00;
+                else if (st.depth <= 17) sphereColor = 0x33cc33;
+
+                const geo = new THREE.SphereGeometry(130, 16, 16);
+                const mat = new THREE.MeshPhongMaterial({ color: sphereColor, emissive: sphereColor, emissiveIntensity: 0.15 });
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.position.copy(pos);
+                scene.add(mesh);
+
+                const lineGeo = new THREE.BufferGeometry().setFromPoints([pos, new THREE.Vector3(st.x, st.y, 0)]);
+                const lineMat = new THREE.LineBasicMaterial({ color: 0x555555, transparent: true, opacity: 0.4 });
+                const dropLine = new THREE.Line(lineGeo, lineMat);
+                scene.add(dropLine);
+
+                const textSprite = createTextSprite(st.name);
+                textSprite.position.set(st.x, st.y, st.z + 320);
+                scene.add(textSprite);
+            });
+
+            if (trackPoints.length > 2) {
+                const curve = new THREE.CatmullRomCurve3(trackPoints, false, 'centripetal');
+                const tubeGeo = new THREE.TubeGeometry(curve, trackPoints.length * 6, 42, 8, false);
+                const tubeMat = new THREE.MeshPhongMaterial({ color: lineColor, emissive: lineColor, emissiveIntensity: 0.05 });
+                const tube = new THREE.Mesh(tubeGeo, tubeMat);
+                scene.add(tube);
+            } else if (trackPoints.length === 2) {
+                const curve = new THREE.LineCurve3(trackPoints[0], trackPoints[1]);
+                const tubeGeo = new THREE.TubeGeometry(curve, 10, 42, 8, false);
+                const tubeMat = new THREE.MeshPhongMaterial({ color: lineColor, emissive: lineColor, emissiveIntensity: 0.05 });
+                const tube = new THREE.Mesh(tubeGeo, tubeMat);
+                scene.add(tube);
+            }
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Control') {
+                const currentAngle = controls.getPolarAngle();
+                controls.minPolarAngle = currentAngle;
+                controls.maxPolarAngle = currentAngle;
+            }
+        });
+        window.addEventListener('keyup', (e) => {
+            if (e.key === 'Control') {
+                controls.minPolarAngle = 0;
+                controls.maxPolarAngle = Math.PI;
+            }
+        });
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+    </script>
+</body>
+</html>
 
